@@ -31,12 +31,19 @@ class SHEETtoPNG:
             markers_coords = self.detect_markers(image)
             corners_coords = self.detect_corners(markers_coords)
             transformed_image = self.perspective_transform(image, corners_coords)
-            transformed_image = imutils.resize(transformed_image, width=1119)
+            transformed_image = imutils.resize(transformed_image, width=1599)
             tile_coords, qr_code_coords = self.get_tile_coordinates(transformed_image, (rows,cols))
-            
+
             qr_data = self.detect_qr_code(transformed_image, qr_code_coords)
             characters = self.detect_characters(transformed_image, tile_coords)
             self.save_images(characters, characters_dir, qr_data)
+            
+            # for tile in tile_coords:
+            #     cv2.rectangle(transformed_image, tile[0], tile[1], (0, 0, 255), 1)
+            # cv2.imwrite('test' + '/' + image_path, transformed_image)
+            # cv2.imshow('Square Detection', transformed_image)
+            # cv2.waitKey(0)
+            # cv2.destroyAllWindows()
 
 
     def detect_markers(self, image):
@@ -105,9 +112,9 @@ class SHEETtoPNG:
         width = max(item[0] for item in markers_coords) - min(item[0] for item in markers_coords)
         height = max(item[1] for item in markers_coords) - min(item[1] for item in markers_coords)
 
-        top_left= (int(top_l[0] - width*0.026), int(top_l[1] + height*0.024))
-        top_right = (int(top_r[0] + width*0.03), int(top_r[1] + height*0.023))
-        bottom_left = (int(bottom_l[0] - width*0.026), int(bottom_l[1] - height*0.035))
+        top_left= (int(top_l[0] - width*0.024), int(top_l[1] + height*0.027))
+        top_right = (int(top_r[0] + width*0.03), int(top_r[1] + height*0.027))
+        bottom_left = (int(bottom_l[0] - width*0.024), int(bottom_l[1] - height*0.035))
         bottom_right = (int(bottom_r[0] + width*0.03), int(bottom_r[1] - height*0.035))
 
         corners_coords = [top_left, top_right, bottom_right, bottom_left]
@@ -158,7 +165,7 @@ class SHEETtoPNG:
         # Calculate the width and height of each tile
         tile_width = width // num_cols
         tile_height = int((height // num_rows)*0.83)
-        tile_sample = int((height // num_rows)*0.18)
+        tile_sample = int((height // num_rows)*0.17)
         
         # List to store tile coordinates
         tile_coords = []
@@ -207,9 +214,20 @@ class SHEETtoPNG:
 
         _, binary_image = cv2.threshold(gray_img, 160, 255, cv2.THRESH_BINARY)
 
+        # Find non-zero pixel locations
+        # black_pixel_locations = np.where(binary_image == 0)
+
+        # Find maximum and minimum locations
+
+        min_col, max_col, min_row, max_row = None, None, None, None
+        # if len(black_pixel_locations[0]) != 0:
+        #     max_row, max_col = np.max(black_pixel_locations[0]), np.max(black_pixel_locations[1])
+        #     min_row, min_col = np.min(black_pixel_locations[0]), np.min(black_pixel_locations[1])
+            # min_col, max_col = np.min(black_pixel_locations[1]), np.max(black_pixel_locations[1])
+
         result_img = cv2.cvtColor(binary_image, cv2.COLOR_GRAY2BGR)
 
-        return result_img
+        return result_img, min_col, max_col, min_row, max_row
 
 
     def detect_characters(self, image, tile_coords):
@@ -224,9 +242,13 @@ class SHEETtoPNG:
             w, h = tile_coord[1][0] - tile_coord[0][0], tile_coord[1][1] - tile_coord[0][1]
             cx, cy = tile_coord[0][0] + w // 2, tile_coord[0][1] + h // 2
 
-            roi = image[cy - int(space_h*1.1) : cy + space_h, cx - space_w : cx + space_w]
-            cleaned_roi = self.clean_image(roi)
-            characters.append([cleaned_roi, cx, cy])
+            roi = image[cy - space_h : cy + int(space_h*0.9), cx - space_w : cx + space_w]
+            cleaned_roi, min_x, max_x, min_y, max_y = self.clean_image(roi)
+            if min_x is not None:
+                real_roi = cleaned_roi[ :max_y , min_x:max_x]
+            else:
+                real_roi = cleaned_roi
+            characters.append([real_roi, cx, cy])
 
         return characters
 
@@ -252,7 +274,7 @@ class SHEETtoPNG:
 
 
 if __name__ == "__main__":
-    sheets_dir = "sheets/Quan"
-    characters_dir = "characters/Quan"
+    sheets_dir = "sheets/Phuc"
+    characters_dir = "characters/Phuc"
 
     SHEETtoPNG().convert(sheets_dir, characters_dir, cols=8, rows=8)
