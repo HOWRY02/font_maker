@@ -1,6 +1,7 @@
 import os
 import sys
 import json
+import uuid
 
 
 class SVGtoTTF:
@@ -36,6 +37,35 @@ class SVGtoTTF:
             ]
         )
 
+    def set_properties(self):
+        """Set metadata of the font from config."""
+        props = self.config["props"]
+        lang = props.get("lang", "English (US)")
+        fontname = props.get("filename", "Example")
+        family = fontname
+        style = props.get("style", "Regular")
+
+        self.font.familyname = fontname
+        self.font.fontname = fontname + "-" + style
+        self.font.fullname = fontname + " " + style
+        self.font.encoding = props.get("encoding", "UnicodeFull")
+
+        for k, v in props.items():
+            if hasattr(self.font, k):
+                if isinstance(v, list):
+                    v = tuple(v)
+                setattr(self.font, k, v)
+
+        if self.config.get("sfnt_names", None):
+            self.config["sfnt_names"]["Family"] = family
+            self.config["sfnt_names"]["Fullname"] = family + " " + style
+            self.config["sfnt_names"]["PostScriptName"] = family + "-" + style
+            self.config["sfnt_names"]["SubFamily"] = style
+
+        self.config["sfnt_names"]["UniqueID"] = family + " " + str(uuid.uuid4())
+
+        for k, v in self.config.get("sfnt_names", {}).items():
+            self.font.appendSFNTName(str(lang), str(k), str(v))
 
     def add_glyphs(self, characters_dir):
         """Read and add SVG images as glyphs to the font.
@@ -49,7 +79,7 @@ class SVGtoTTF:
         characters_dir : str
             Path to directory with SVGs to be converted.
         """
-        space = self.font.createMappedChar(ord(" "))
+        space = self.font.createChar(ord(" "))
         space.width = 300
 
         for k in self.config["glyphs"]:
@@ -61,6 +91,58 @@ class SVGtoTTF:
             src = characters_dir + os.sep + src
             g.importOutlines(src, ("removeoverlap", "correctdir"))
             g.removeOverlap()
+
+    def set_bearings(self, bearings):
+        """Add left and right bearing from config
+
+        Parameters
+        ----------
+        bearings : dict
+            Map from character: [left bearing, right bearing]
+        """
+        default = bearings.get("Default", [60, 60])
+
+        for k, v in bearings.items():
+            if v[0] is None:
+                v[0] = default[0]
+            if v[1] is None:
+                v[1] = default[1]
+
+            if k != "Default":
+                glyph_name = self.unicode_mapping[ord(str(k))]
+                self.font[glyph_name].left_side_bearing = v[0]
+                self.font[glyph_name].right_side_bearing = v[1]
+
+    def set_kerning(self, table):
+        """Set kerning values in the font.
+
+        Parameters
+        ----------
+        table : dict
+            Config dictionary with kerning values/autokern bool.
+        """
+        rows = table["rows"]
+        rows = [list(i) if i != None else None for i in rows]
+        cols = table["cols"]
+        cols = [list(i) if i != None else None for i in cols]
+
+        self.font.addLookup("kern", "gpos_pair", 0, [["kern", [["latn", ["dflt"]]]]])
+
+        if table.get("autokern", True):
+            self.font.addKerningClass(
+                "kern", "kern-1", table.get("seperation", 0), rows, cols, True
+            )
+        else:
+            kerning_table = table.get("table", False)
+            if not kerning_table:
+                raise ValueError("Kerning offsets not found in the config file.")
+            flatten_list = (
+                lambda y: [x for a in y for x in flatten_list(a)]
+                if type(y) is list
+                else [y]
+            )
+            offsets = [0 if x is None else x for x in flatten_list(kerning_table)]
+            self.font.addKerningClass("kern", "kern-1", rows, cols, offsets)
 
 
     def generate_font_file(self, filename, output_dir):
@@ -102,20 +184,21 @@ class SVGtoTTF:
 
         self.font = fontforge.font()
         self.unicode_mapping = {}
+        self.set_properties()
         self.add_glyphs(characters_dir)
 
+        # bearing table
+        self.set_bearings(self.config["typography_parameters"].get("bearing_table", {}))
+
+        # kerning table
+        # self.set_kerning(self.config["typography_parameters"].get("kerning_table", {}))
+
         # Generate font and save as a .ttf file
-        filename = os.path.basename(output_dir)
-        self.generate_font_file(filename, output_dir)
+        filename = self.config["props"].get("filename", None)
+        self.generate_font_file(str(filename), output_dir)
 
 
 if __name__ == "__main__":
-    # characters_dir = "characters/Quan"
-    # output_dir = "output/Quan"
-    # config = "config/Quan_font_config.json"
-
-    # SVGtoTTF().convert_main(characters_dir, output_dir, config)
-
     if len(sys.argv) != 4:
         raise ValueError("Incorrect call to SVGtoTTF")
     SVGtoTTF().convert_main(sys.argv[1], sys.argv[2], sys.argv[3])
