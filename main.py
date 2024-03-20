@@ -48,10 +48,13 @@ if __name__ == "__main__":
     if len(sheets_dir) == 0:
         print("You haven't chosen the sheets directory!")
     else:
+        # characters_dir = filedialog.askdirectory(title='Choose characters directory')
         output_parent_dir = os.path.join(
             os.path.dirname(os.path.realpath(__file__)), "output"
         )
         if not os.path.exists(output_parent_dir):
             os.makedirs(output_parent_dir)
 
-        converters(sheets_dir)
+        metadata = {"filename": None, "family": None, "style": None}
+        # converters(sheets_dir=sheets_dir, characters_dir=characters_dir)
+        converters(sheets_dir=sheets_dir)
