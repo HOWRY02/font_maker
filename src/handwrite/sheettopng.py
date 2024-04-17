@@ -214,20 +214,9 @@ class SHEETtoPNG:
 
         _, binary_image = cv2.threshold(gray_img, 160, 255, cv2.THRESH_BINARY)
 
-        # Find non-zero pixel locations
-        # black_pixel_locations = np.where(binary_image == 0)
-
-        # Find maximum and minimum locations
-
-        min_col, max_col, min_row, max_row = None, None, None, None
-        # if len(black_pixel_locations[0]) != 0:
-        #     max_row, max_col = np.max(black_pixel_locations[0]), np.max(black_pixel_locations[1])
-        #     min_row, min_col = np.min(black_pixel_locations[0]), np.min(black_pixel_locations[1])
-            # min_col, max_col = np.min(black_pixel_locations[1]), np.max(black_pixel_locations[1])
-
         result_img = cv2.cvtColor(binary_image, cv2.COLOR_GRAY2BGR)
 
-        return result_img, min_col, max_col, min_row, max_row
+        return result_img
 
 
     def detect_characters(self, image, tile_coords):
@@ -243,12 +232,8 @@ class SHEETtoPNG:
             cx, cy = tile_coord[0][0] + w // 2, tile_coord[0][1] + h // 2
 
             roi = image[cy - space_h : cy + int(space_h*0.9), cx - space_w : cx + space_w]
-            cleaned_roi, min_x, max_x, min_y, max_y = self.clean_image(roi)
-            if min_x is not None:
-                real_roi = cleaned_roi[ :max_y , min_x:max_x]
-            else:
-                real_roi = cleaned_roi
-            characters.append([real_roi, cx, cy])
+            # cleaned_roi = self.clean_image(roi)
+            characters.append([roi, cx, cy])
 
         return characters
 

@@ -191,7 +191,7 @@ class SVGtoTTF:
         self.set_bearings(self.config["typography_parameters"].get("bearing_table", {}))
 
         # kerning table
-        # self.set_kerning(self.config["typography_parameters"].get("kerning_table", {}))
+        self.set_kerning(self.config["typography_parameters"].get("kerning_table", {}))
 
         # Generate font and save as a .ttf file
         filename = self.config["props"].get("filename", None)
