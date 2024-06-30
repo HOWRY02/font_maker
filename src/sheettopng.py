@@ -258,19 +258,28 @@ class SHEETtoPNG:
 
 
     def save_images(self, characters, characters_dir, qr_data):
+        # Load glyphs configuration from a YAML file
         with open('config/glyphs.yaml') as yaml_file:
             glyphs = yaml.safe_load(yaml_file)
 
+        # Create the main directory for storing character images if it doesn't exist
         os.makedirs(characters_dir, exist_ok=True)
 
         # Create directory for each character and save the png for the characters
         # Structure (single sheet): UserProvidedDir/ord(character)/ord(character).png
         # Structure (multiple sheets): UserProvidedDir/sheet_filename/ord(character)/ord(character).png
+        # Iterate over each character and its associated images
         for k, images in enumerate(characters):
+            # Check if the index is within the range of the glyphs for the given QR data
             if k<len(glyphs[qr_data]):
+                # Create a directory path for the current character using its Unicode code point
                 character = os.path.join(characters_dir, str(ord(glyphs[qr_data][k])))
+
+                # Create the directory if it doesn't exist
                 if not os.path.exists(character):
                     os.mkdir(character)
+
+                # Save the image as a PNG file in the character's directory
                 cv2.imwrite(
                     os.path.join(character, str(ord(glyphs[qr_data][k])) + ".png"),
                     images[0],
