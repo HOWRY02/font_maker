@@ -170,6 +170,7 @@ class SHEETtoPNG:
 
 
     def get_tile_coordinates(self, transformed_image, tile_size):
+        # Get the dimensions of the transformed image
         width = transformed_image.shape[1]
         height = transformed_image.shape[0]
 
@@ -179,8 +180,8 @@ class SHEETtoPNG:
         
         # Calculate the width and height of each tile
         tile_width = width // num_cols
-        tile_height = int((height // num_rows)*0.83)
-        tile_sample = int((height // num_rows)*0.17)
+        tile_height = int((height // num_rows)*0.83)    # Height of the actual tile
+        tile_sample = int((height // num_rows)*0.17)    # Space between tiles
         
         # List to store tile coordinates
         tile_coords = []
@@ -197,9 +198,12 @@ class SHEETtoPNG:
                 
                 # Append the coordinates of the tile (top_left and bottom right)
                 tile_coords.append(((start_x, start_y), (end_x, end_y)))
-        
+
+        # Define coordinates for a QR code
         qr_code_coords = [(tile_coords[6][0][0], tile_coords[6][0][1]),
                         (tile_coords[15][1][0], tile_coords[15][1][1])]
+        
+        # Remove specific tiles that might be reserved for the QR code
         tile_coords = tile_coords[:6] + tile_coords[8:14] + tile_coords[16:]
 
         return tile_coords, qr_code_coords
