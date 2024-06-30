@@ -47,31 +47,46 @@ class SHEETtoPNG:
 
 
     def detect_markers(self, image):
+        # Convert the image to grayscale
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
+        # Get the dimensions of the image
         width = image.shape[1]
         height = image.shape[0]
         img_area = width*height
 
+        # Apply a binary threshold to the grayscale image
         ret,thresh = cv2.threshold(gray,120,255,1)
+
+        # Find contours in the thresholded image
         contours,h = cv2.findContours(thresh,1,2)
 
         detected_markers = []
         for contour in contours:
+            # Calculate the perimeter of the contour
             perimeter = cv2.arcLength(contour, True)
+
+            # Approximate the contour to a polygon
             approx = cv2.approxPolyDP(contour, 0.01 * perimeter, True)
+
+            # Calculate the area of the contour
             area = cv2.contourArea(contour)
-            
+
+            # Filter out contours that are too small or too large
             if area>(img_area/2000) and area<(img_area/800):
+                # Filter out contours that do not have the desired number of sides
                 if len(approx) > 3 and len(approx) < 12:
+                    # Calculate the centroid of the contour
                     M = cv2.moments(approx)
                     if M["m00"] != 0:
                         cx = int(M["m10"] / M["m00"])
                         cy = int(M["m01"] / M["m00"])
                         detected_markers.append((cx, cy))
 
+        # Remove duplicate coordinates from the detected markers
         detected_markers = self.remove_duplicate_coordinates(detected_markers, width, height)
 
+        # Sort the corners of the detected markers
         markers_coords = self.sort_corners([detected_markers[0], detected_markers[1],
                                     detected_markers[-2], detected_markers[-1]])
 
