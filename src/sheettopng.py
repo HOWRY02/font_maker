@@ -259,7 +259,7 @@ class SHEETtoPNG:
 
 
 if __name__ == "__main__":
-    sheets_dir = "sheets/Phuc"
-    characters_dir = "characters/Phuc"
+    sheets_dir = "sheets/data_16"
+    characters_dir = "characters/data_16"
 
     SHEETtoPNG().convert(sheets_dir, characters_dir, cols=8, rows=8)

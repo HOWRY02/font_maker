@@ -93,6 +93,6 @@ class PNGtoSVG:
 
 
 if __name__ == "__main__":
-    characters_dir = "characters/Quan"
+    characters_dir = "characters/data_16"
 
     PNGtoSVG().convert(characters_dir)
