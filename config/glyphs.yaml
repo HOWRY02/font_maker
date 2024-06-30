@@ -1,10 +1,11 @@
-CICCA33F2ZZD:
+CICCA33ZZJ:
 - '!'
 - '"'
 - '#'
 - $
 - '%'
 - '&'
+- ''''
 - (
 - )
 - '*'
@@ -58,10 +59,11 @@ CICCA33F2ZZD:
 - Z
 - '['
 - \
+CICCA93ZI66D5C2B5D4B3A3D5C2B5A:
 - ']'
-CICCA94B2ZB2B66D5C2B5D4B3A3D5C2B5D:
 - ^
 - _
+- '`'
 - a
 - b
 - c
@@ -89,6 +91,7 @@ CICCA94B2ZB2B66D5C2B5D4B3A3D5C2B5D:
 - y
 - z
 - '{'
+- '|'
 - '}'
 - '~'
 - À
@@ -117,10 +120,10 @@ CICCA94B2ZB2B66D5C2B5D4B3A3D5C2B5D:
 - ì
 - í
 - ò
+CICCA243C4B3A5B13B23B63B55B14B7408ZQ:
 - ó
 - ô
 - õ
-CICCA249B3A5B13B23B63B55B14B7408ZT:
 - ù
 - ú
 - ý
@@ -178,10 +181,10 @@ CICCA249B3A5B13B23B63B55B14B7408ZT:
 - ệ
 - Ỉ
 - ỉ
+CICCA7882ZW:
 - Ị
 - ị
 - Ọ
-CICCA7885ZT:
 - ọ
 - Ỏ
 - ỏ
